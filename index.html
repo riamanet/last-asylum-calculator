@@ -1,0 +1,1106 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>라스트 어사일럼: 페스트 | 건물 업그레이드 계산기 KR</title>
+<style>
+:root {
+  --bg:#0d1320; --card:#151e2f; --card2:#1b263a; --line:#2b3951;
+  --txt:#eef4ff; --muted:#9eabc0; --accent:#f3c34f; --good:#79d7a6;
+}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(180deg,#0b101b,#101827);color:var(--txt);
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",Arial,sans-serif}
+.wrap{max-width:760px;margin:auto;padding:20px 14px 50px}
+.hero{padding:20px 4px 14px}
+h1{font-size:24px;margin:0 0 6px;line-height:1.25}
+.sub{color:var(--muted);font-size:14px;line-height:1.55}
+.card{background:rgba(21,30,47,.96);border:1px solid var(--line);border-radius:18px;padding:16px;margin:12px 0;box-shadow:0 12px 28px rgba(0,0,0,.18)}
+label{display:block;color:var(--muted);font-size:13px;margin:0 0 7px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field{margin-bottom:12px}
+select{width:100%;background:#0f1725;color:var(--txt);border:1px solid #34445f;border-radius:12px;padding:13px 12px;font-size:16px}
+select:focus{outline:2px solid #806a2d}
+.start-btn{width:100%;border:0;border-radius:14px;padding:15px 16px;font-size:17px;font-weight:800;
+background:var(--accent);color:#17130a;cursor:pointer;margin-top:4px}
+.start-btn:active{transform:translateY(1px)}
+.title{font-weight:800;font-size:17px;margin-bottom:12px}
+.result-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:12px 10px;min-width:0}
+.stat .k{color:var(--muted);font-size:12px}
+.stat .v{font-weight:800;font-size:16px;margin-top:5px;word-break:break-all}
+.total{margin-top:12px;background:#111a2a;border:1px solid #34445f;border-radius:14px;padding:14px}
+.total strong{color:var(--accent)}
+.steps{margin-top:12px}
+.step{padding:11px 0;border-bottom:1px solid var(--line)}
+.step:last-child{border-bottom:0}
+.prereq-row{display:grid;grid-template-columns:1.3fr .8fr 1fr;gap:8px;align-items:center;
+padding:10px 0;border-bottom:1px solid var(--line)}
+.prereq-row:last-child{border-bottom:0}
+.prereq-name{font-weight:750}
+.prereq-input{width:100%;background:#0f1725;color:var(--txt);border:1px solid #34445f;
+border-radius:10px;padding:10px;font-size:15px}
+.prereq-status{font-size:13px;text-align:right;line-height:1.35}
+.prereq-ok{color:var(--good);font-weight:800}
+.prereq-need{color:var(--accent);font-weight:800}
+@media(max-width:520px){
+  .prereq-row{grid-template-columns:1fr 92px}
+  .prereq-status{grid-column:1 / -1;text-align:left;padding-left:2px}
+}
+.step-head{display:flex;justify-content:space-between;gap:8px;font-weight:700}
+.req{color:#cbd6e8;font-size:13px;line-height:1.45;margin-top:5px}
+.badge{font-size:12px;border:1px solid #485a75;border-radius:999px;padding:3px 7px;color:#cdd8e7;white-space:nowrap}
+.note{font-size:12px;color:var(--muted);line-height:1.55}
+.source{font-size:12px;color:#8492aa;line-height:1.55;margin-top:14px}
+@media(max-width:520px){
+  .result-grid{grid-template-columns:1fr}
+  .time-grid{grid-template-columns:1fr !important}
+  .time-grid .v{white-space:normal;word-break:keep-all;line-height:1.45}
+  h1{font-size:21px}
+}
+
+.stage{display:none}
+.stage.show{display:block}
+.stage-divider{border-top:1px solid var(--line);margin:14px 0;padding-top:14px}
+.confirm-btn{width:100%;border:1px solid #52627c;border-radius:13px;padding:13px 14px;
+font-size:16px;font-weight:800;background:#202d43;color:var(--txt);cursor:pointer;margin-top:4px}
+.confirm-btn:active{transform:translateY(1px)}
+.stage-badge{display:inline-block;font-size:11px;font-weight:800;color:var(--accent);
+border:1px solid #66572f;border-radius:999px;padding:3px 8px;margin-bottom:7px}
+.ready-box{background:#111a2a;border:1px solid #34445f;border-radius:13px;padding:12px;margin:10px 0 2px}
+
+
+.time-item{
+  background:#111a2a;
+  border:1px solid #34445f;
+  border-radius:14px;
+  padding:14px;
+  margin:10px 0;
+}
+.time-item-title{
+  font-size:17px;
+  font-weight:850;
+  margin-bottom:7px;
+}
+.time-item-line{
+  color:var(--muted);
+  font-size:14px;
+  line-height:1.65;
+}
+.time-item-line strong{
+  color:var(--txt);
+}
+
+
+.time-level-row{
+  margin-top:10px;
+  padding:10px 12px;
+  border-radius:12px;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.07);
+}
+.time-level-title{
+  font-weight:700;
+  margin-bottom:6px;
+}
+.time-level-values{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  flex-wrap:wrap;
+  font-size:.92rem;
+}
+.time-level-values strong{
+  white-space:nowrap;
+}
+
+
+.time-grand-total{
+  margin-top:12px;
+  border-width:2px;
+}
+.time-grand-total .time-item-title{
+  font-size:1.08rem;
+}
+
+.hide-level-prereq{display:none!important;}
+
+.complete-btn{
+  width:auto;
+  min-width:92px;
+  padding:10px 14px;
+  margin-top:8px;
+  border:1px solid #4f6b62;
+  border-radius:14px;
+  background:#16251f;
+  color:#72d5a4;
+  font-weight:800;
+  font-size:15px;
+}
+.complete-btn.done{
+  background:#183328;
+  color:#8ce3b5;
+  border-color:#5b9d7d;
+}
+
+.minus-one-btn{
+  width:auto;
+  min-width:72px;
+  padding:10px 14px;
+  margin-top:8px;
+  margin-right:7px;
+  border:1px solid #53627a;
+  border-radius:14px;
+  background:#182235;
+  color:#dce6f7;
+  font-weight:800;
+  font-size:15px;
+}
+
+.plus-one-btn{
+  width:auto;
+  min-width:72px;
+  padding:10px 14px;
+  margin-top:8px;
+  margin-right:7px;
+  border:1px solid #53627a;
+  border-radius:14px;
+  background:#182235;
+  color:#dce6f7;
+  font-weight:800;
+  font-size:15px;
+}
+
+.version-credit{
+  display:inline-block;
+  margin-top:4px;
+  font-size:11px;
+  opacity:.72;
+  font-weight:500;
+}
+</style>
+
+<style>
+.complete-btn,
+.complete-btn.done{
+  background:#182235 !important;
+  color:#dce6f7 !important;
+  border-color:#53627a !important;
+}
+</style>
+
+
+<style>
+.level-button-group{
+  display:flex !important;
+  flex-direction:row !important;
+  flex-wrap:nowrap !important;
+  align-items:center !important;
+  justify-content:flex-end !important;
+  gap:7px !important;
+  width:100% !important;
+  margin-top:8px !important;
+}
+.level-button-group .minus-one-btn,
+.level-button-group .plus-one-btn,
+.level-button-group .complete-btn,
+.level-button-group .complete-btn.done{
+  position:static !important;
+  display:flex !important;
+  flex:0 0 auto !important;
+  align-items:center !important;
+  justify-content:center !important;
+  height:40px !important;
+  margin:0 !important;
+  padding:0 !important;
+  min-width:0 !important;
+  border:1px solid #53627a !important;
+  border-radius:12px !important;
+  background:#182235 !important;
+  color:#dce6f7 !important;
+  font-size:15px !important;
+  font-weight:800 !important;
+}
+.level-button-group .minus-one-btn,
+.level-button-group .plus-one-btn{
+  width:54px !important;
+}
+.level-button-group .complete-btn,
+.level-button-group .complete-btn.done{
+  width:72px !important;
+}
+</style>
+
+
+<style>
+/* V60: 버튼 3개가 입력칸 아래까지 포함한 전체 가로폭을 1:1:1로 사용 */
+.level-button-group{
+  grid-column:1 / -1 !important;
+  justify-self:stretch !important;
+  display:grid !important;
+  grid-template-columns:repeat(3, minmax(0, 1fr)) !important;
+  width:100% !important;
+  max-width:none !important;
+  gap:8px !important;
+  margin-top:10px !important;
+  box-sizing:border-box !important;
+}
+.level-button-group .minus-one-btn,
+.level-button-group .plus-one-btn,
+.level-button-group .complete-btn,
+.level-button-group .complete-btn.done{
+  width:100% !important;
+  min-width:0 !important;
+  max-width:none !important;
+  height:48px !important;
+  margin:0 !important;
+  padding:0 !important;
+  box-sizing:border-box !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  background:#182235 !important;
+  color:#dce6f7 !important;
+  border:1px solid #53627a !important;
+  border-radius:14px !important;
+}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <h1>🏰 라스트 어사일럼: 페스트<br>건물 업그레이드 계산기 KR</h1>
+    <div class="sub">1단계에서 성당 레벨과 개인 버프를 입력하고, 2단계에서 필요한 건물의 현재 레벨을 입력하면 결과가 나옵니다.</div>
+  </div>
+
+  <div class="card">
+    <div class="stage-badge">1단계</div>
+    <div class="title" style="margin-bottom:10px">기본 설정</div>
+
+    <div class="field">
+      <label>건물 선택</label>
+      <select id="building">
+        <option value="sanctuary">성당 (Sanctuary)</option>
+        <option value="research">연구소</option>
+        <option value="training">훈련장</option>
+        <option value="wall">성벽</option>
+        <option value="alliance">길드 연락소</option>
+        <option value="hospital">병원</option>
+        <option value="barracks">병영</option>
+        <option value="warriorStatue">전사 조각상</option>
+      </select>
+    </div>
+
+    <div class="grid">
+      <div class="field">
+        <label id="currentLevelLabel">현재 성당 레벨</label>
+        <select id="current"></select>
+      </div>
+      <div class="field">
+        <label id="targetLevelLabel">올릴 성당 레벨</label>
+        <select id="target"></select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>건설 자원 소모 감소</label>
+      <div style="display:flex;align-items:center;gap:8px">
+        <input id="discount" type="number" inputmode="decimal" min="0" max="100" step="0.1"
+          placeholder="숫자만 입력" autocomplete="off"
+          style="flex:1;min-width:0;background:#0f1725;color:var(--txt);border:1px solid #34445f;border-radius:12px;padding:13px 12px;font-size:16px">
+        <span style="font-size:18px;font-weight:800">%</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>건물 건설 속도 향상</label>
+      <div style="display:flex;align-items:center;gap:8px">
+        <input id="buildSpeed" type="number" inputmode="decimal" min="0" step="0.1"
+          placeholder="숫자만 입력" autocomplete="off"
+          style="flex:1;min-width:0;background:#0f1725;color:var(--txt);border:1px solid #34445f;border-radius:12px;padding:13px 12px;font-size:16px">
+        <span style="font-size:18px;font-weight:800">%</span>
+      </div>
+    </div>
+
+    <button id="checkReqBtn" class="confirm-btn" type="button">필요 건물 확인</button>
+
+    <div id="stage2" class="stage">
+      <div class="stage-divider">
+        <div class="stage-badge">2단계</div>
+        <div class="title" style="margin-bottom:6px">필요 건물 </div>
+        <div class="note" style="margin-bottom:10px">
+          목표 성당까지 필요한 건물을 표시합니다. 현재 올려둔 레벨을 숫자로 입력해 주세요.
+        </div>
+        <div id="prereqInputs"></div>
+        <button id="confirmReqBtn" class="confirm-btn" type="button">입력 완료 · 결과 보기</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="resultResourceCard" class="card stage">
+    <div class="title">총 필요 자원</div>
+    <div id="baseResourceArea" style="display:none"><div class="note" style="margin-bottom:8px">기본 필요량</div>
+    <div class="result-grid">
+      <div class="stat"><div class="k">🌾 식량</div><div class="v" id="grainBase">0</div></div>
+      <div class="stat"><div class="k">🪵 목재</div><div class="v" id="woodBase">0</div></div>
+      <div class="stat"><div class="k">🌿 약초</div><div class="v" id="herbBase">0</div></div>
+    </div>
+    </div>
+
+    <div id="resourceResultNote" class="note" style="margin:0 0 8px">성당 + 부족한 선행건물 실제 필요 자원</div>
+    <div class="result-grid">
+      <div class="stat"><div class="k">🌾 식량</div><div class="v" id="grain">0</div></div>
+      <div class="stat"><div class="k">🪵 목재</div><div class="v" id="wood">0</div></div>
+      <div class="stat"><div class="k">🌿 약초</div><div class="v" id="herb">0</div></div>
+    </div>
+
+    <div id="resourceSummaryBox" class="total">
+      <div>적용 감소율: <strong id="discountView">0%</strong></div>
+      <div style="margin-top:6px">업그레이드 단계: <strong id="count">0</strong>단계</div>
+      <div style="margin-top:6px">목표 성당 요구 별: <strong id="stars">-</strong></div>
+    </div>
+
+    <div id="resourceBreakdown" class="ready-box" style="margin-top:12px"></div>
+  </div>
+
+  <div id="resultTimeCard" class="card stage">
+    <div class="title">⏱ 건설시간 총합</div>
+    <div class="result-grid time-grid" style="grid-template-columns:1fr 1fr">
+      <div id="baseTimeStat" class="stat">
+        <div class="k">기본 총 시간</div>
+        <div class="v" id="baseTime">-</div>
+      </div>
+      <div class="stat">
+        <div class="k">버프 적용 후 총 시간</div>
+        <div class="v" id="appliedTime">-</div>
+      </div>
+    </div>
+    <div id="speedSummaryBox" class="total">
+      <div>건설 속도 향상: <strong id="speedView">-</strong></div>
+    </div>
+    <div id="timeFormulaNote" class="note" style="margin-top:10px">※ 계산식: 기본시간 ÷ (1 + 건설속도 향상률)</div>
+
+    <div id="timeBreakdown" class="ready-box" style="margin-top:14px"></div>
+  </div>
+<div id="resultStepsCard" class="card stage">
+    <div class="hide-level-prereq title">레벨별 선행 조건</div>
+    <div id="steps" class="hide-level-prereq steps"></div>
+  </div>
+
+  <div class="card">
+    <div class="title">데이터 안내</div>
+    <div class="note">
+      자원 값은 2026년 8월 31일 검증된 해외 위키의 성당 레벨별 표를 기준으로 입력했습니다.
+      선행 건물과 별 요구치는 별도의 Last Asylum Plague 건물 표와 대조했습니다.
+      게임 업데이트나 개인 버프에 따라 실제 화면 수치와 차이가 생길 수 있습니다.
+    </div>
+    <div class="source">
+      성당 + 연구소·훈련장·성벽·연맹회관·의무실·병영·전사 조각상 데이터를 연결했습니다. 현재 추가된 대표 건물은 모두 Lv.30까지 자원·건설시간 계산이 가능합니다.<br>
+      현재 성당 29→30처럼 이 세 건물이 선행조건인 구간은 부족 레벨만큼 자동 합산됩니다.
+    </div>
+  </div>
+</div>
+
+<script>
+const DATA = {"1": {"grain": 0, "wood": 0, "herb": 0, "stars": 0, "req": "없음", "time": "이미 건설됨"}, "2": {"grain": 32, "wood": 32, "herb": 0, "stars": 0, "req": "없음", "time": "1분 미만"}, "3": {"grain": 983, "wood": 983, "herb": 0, "stars": 17, "req": "없음", "time": "1분 미만"}, "4": {"grain": 2598, "wood": 2598, "herb": 0, "stars": 19, "req": "목재 창고 Lv.1 · 곡물 창고 Lv.1 · 약초 창고 Lv.1", "time": "5분"}, "5": {"grain": 19730, "wood": 19730, "herb": 0, "stars": 28, "req": "성벽 Lv.3", "time": "10분"}, "6": {"grain": 92710, "wood": 92710, "herb": 0, "stars": 47, "req": "성벽 Lv.5", "time": "34분"}, "7": {"grain": 235800, "wood": 235800, "herb": 0, "stars": 61, "req": "훈련장 Lv.4 · 연맹회관 Lv.3", "time": "1시간 30분"}, "8": {"grain": 395600, "wood": 395600, "herb": 0, "stars": 80, "req": "훈련장 Lv.6 · 연맹회관 Lv.5", "time": "3시간 1분"}, "9": {"grain": 605800, "wood": 605800, "herb": 208700, "stars": 96, "req": "성벽 Lv.8 · 연맹회관 Lv.7", "time": "4시간 16분"}, "10": {"grain": 748700, "wood": 748700, "herb": 232900, "stars": 112, "req": "성벽 Lv.9 · 의무실 Lv.7", "time": "5시간 35분"}, "11": {"grain": 1853000, "wood": 1853000, "herb": 601800, "stars": 142, "req": "훈련장 Lv.10 · 연구소 Lv.7", "time": "7시간 14분"}, "12": {"grain": 3104000, "wood": 3104000, "herb": 959000, "stars": 155, "req": "연구소 Lv.11 · 성벽 Lv.10 · 해독제 작업장 Lv.7", "time": "9시간 24분"}, "13": {"grain": 3519000, "wood": 3519000, "herb": 1082000, "stars": 173, "req": "연구소 Lv.12 · 연맹회관 Lv.11 · 농장 Lv.7", "time": "12시간 13분"}, "14": {"grain": 4913000, "wood": 4913000, "herb": 1645000, "stars": 193, "req": "연구소 Lv.13 · 전사 조각상 Lv.12 · 제재소 Lv.7", "time": "15시간 53분"}, "15": {"grain": 6474000, "wood": 6474000, "herb": 2290000, "stars": 201, "req": "연구소 Lv.14 · 훈련장 Lv.14 · 약초밭 Lv.7", "time": "22시간 15분"}, "16": {"grain": 11900000, "wood": 11900000, "herb": 3970000, "stars": 215, "req": "전사 조각상 Lv.14 · 연구소 Lv.15 · 곡물 창고 Lv.7", "time": "1일 7시간"}, "17": {"grain": 16670000, "wood": 16670000, "herb": 5138000, "stars": 225, "req": "연구소 Lv.16 · 병영 Lv.15 · 목재 창고 Lv.7", "time": "1일 19시간"}, "18": {"grain": 28220000, "wood": 28220000, "herb": 9329000, "stars": 231, "req": "연구소 Lv.17 · 훈련장 Lv.17 · 약초 창고 Lv.7", "time": "2일 13시간"}, "19": {"grain": 32710000, "wood": 32710000, "herb": 11340000, "stars": 237, "req": "연구소 Lv.18 · 전사 조각상 Lv.17 · 해독제 작업장 Lv.10", "time": "3일 13시간"}, "20": {"grain": 60030000, "wood": 60030000, "herb": 18410000, "stars": 247, "req": "연구소 Lv.19 · 연맹회관 Lv.18 · 농장 Lv.10", "time": "4일 23시간"}, "21": {"grain": 85450000, "wood": 85450000, "herb": 27640000, "stars": 254, "req": "연구소 Lv.20 · 훈련장 Lv.20 · 제재소 Lv.10", "time": "6일 16시간"}, "22": {"grain": 111200000, "wood": 111200000, "herb": 36660000, "stars": 260, "req": "연구소 Lv.21 · 전사 조각상 Lv.21 · 약초밭 Lv.10", "time": "8일 16시간"}, "23": {"grain": 145200000, "wood": 145200000, "herb": 42760000, "stars": 270, "req": "연구소 Lv.22 · 의무실 Lv.22 · 곡물 창고 Lv.10", "time": "11일 6시간"}, "24": {"grain": 171200000, "wood": 171200000, "herb": 56250000, "stars": 282, "req": "연구소 Lv.23 · 성벽 Lv.23 · 목재 창고 Lv.10", "time": "15일 19시간"}, "25": {"grain": 277900000, "wood": 277900000, "herb": 97530000, "stars": 292, "req": "연구소 Lv.24 · 훈련장 Lv.24 · 약초 창고 Lv.10", "time": "22일 3시간"}, "26": {"grain": 386800000, "wood": 386800000, "herb": 123500000, "stars": 304, "req": "연구소 Lv.25 · 전사 조각상 Lv.25 · 해독제 작업장 Lv.13", "time": "30일 23시간"}, "27": {"grain": 548000000, "wood": 548000000, "herb": 168600000, "stars": 314, "req": "연구소 Lv.26 · 훈련장 Lv.26 · 농장 Lv.13", "time": "43일 8시간"}, "28": {"grain": 731100000, "wood": 731100000, "herb": 236500000, "stars": 326, "req": "연구소 Lv.27 · 병영 Lv.27 · 제재소 Lv.13", "time": "60일 17시간"}, "29": {"grain": 1047000000, "wood": 1047000000, "herb": 316400000, "stars": 326, "req": "연구소 Lv.28 · 연맹회관 Lv.28 · 약초밭 Lv.13", "time": "78일 22시간"}, "30": {"grain": 1355999998, "wood": 1355999998, "herb": 441299999, "stars": 326, "req": "연구소 Lv.29 · 훈련장 Lv.29 · 해독제 작업장 Lv.15", "time": "102일 14시간 53분 43초"}};
+
+const BUILDING_DATA = {"연구소": {"1": {"grain": 89, "wood": 89, "herb": 0}, "2": {"grain": 228, "wood": 228, "herb": 0}, "3": {"grain": 951, "wood": 951, "herb": 0}, "4": {"grain": 2580, "wood": 2580, "herb": 0}, "5": {"grain": 20890, "wood": 20890, "herb": 0}, "6": {"grain": 87900, "wood": 87900, "herb": 0}, "7": {"grain": 213000, "wood": 213000, "herb": 0}, "8": {"grain": 355000, "wood": 355000, "herb": 0}, "9": {"grain": 533000, "wood": 533000, "herb": 176000}, "10": {"grain": 634000, "wood": 634000, "herb": 204300}, "11": {"grain": 1540000, "wood": 1540000, "herb": 522000}, "12": {"grain": 2850000, "wood": 2850000, "herb": 860000}, "13": {"grain": 3150000, "wood": 3150000, "herb": 973000}, "14": {"grain": 4440000, "wood": 4440000, "herb": 1430000}, "15": {"grain": 6223000, "wood": 6223000, "herb": 1971000}, "16": {"grain": 10700000, "wood": 10700000, "herb": 3520000}, "17": {"grain": 14100000, "wood": 14100000, "herb": 4340000}, "18": {"grain": 22900000, "wood": 22900000, "herb": 7560000}, "19": {"grain": 28200000, "wood": 28200000, "herb": 8870000}, "20": {"grain": 49610000, "wood": 49610000, "herb": 16360000}, "21": {"grain": 73200000, "wood": 73200000, "herb": 22400000}, "22": {"grain": 92300000, "wood": 92300000, "herb": 29000000}, "23": {"grain": 115000000, "wood": 115000000, "herb": 37000000}, "24": {"grain": 154000000, "wood": 154000000, "herb": 46000000}, "25": {"grain": 244100000, "wood": 244100000, "herb": 80370000}, "26": {"grain": 354000000, "wood": 354000000, "herb": 108000000}, "27": {"grain": 455000000, "wood": 455000000, "herb": 144000000}, "28": {"grain": 629000000, "wood": 629000000, "herb": 206000000}, "29": {"grain": 917000000, "wood": 917000000, "herb": 294000000}, "30": {"grain": 1297000000, "wood": 1297000000, "herb": 390300000}}, "훈련장": {"1": {"grain": 19, "wood": 19, "herb": 0}, "2": {"grain": 28, "wood": 28, "herb": 0}, "3": {"grain": 677, "wood": 677, "herb": 0}, "4": {"grain": 1680, "wood": 1680, "herb": 0}, "5": {"grain": 14520, "wood": 14520, "herb": 0}, "6": {"grain": 62300, "wood": 62300, "herb": 0}, "7": {"grain": 124000, "wood": 124000, "herb": 0}, "8": {"grain": 196000, "wood": 196000, "herb": 0}, "9": {"grain": 297000, "wood": 297000, "herb": 117000}, "10": {"grain": 365100, "wood": 365100, "herb": 147900}, "11": {"grain": 936000, "wood": 936000, "herb": 371000}, "12": {"grain": 1560000, "wood": 1560000, "herb": 641000}, "13": {"grain": 1780000, "wood": 1780000, "herb": 703000}, "14": {"grain": 2440000, "wood": 2440000, "herb": 978000}, "15": {"grain": 3310000, "wood": 3310000, "herb": 1448000}, "16": {"grain": 6160000, "wood": 6160000, "herb": 2400000}, "17": {"grain": 8160000, "wood": 8160000, "herb": 3140000}, "18": {"grain": 13800000, "wood": 13800000, "herb": 5420000}, "19": {"grain": 17600000, "wood": 17600000, "herb": 6330000}, "20": {"grain": 30190000, "wood": 30190000, "herb": 11950000}, "21": {"grain": 40100000, "wood": 40100000, "herb": 16400000}, "22": {"grain": 52300000, "wood": 52300000, "herb": 23100000}, "23": {"grain": 69400000, "wood": 69400000, "herb": 26500000}, "24": {"grain": 88500000, "wood": 88500000, "herb": 34600000}, "25": {"grain": 135500000, "wood": 135500000, "herb": 55450000}, "26": {"grain": 190000000, "wood": 190000000, "herb": 82800000}, "27": {"grain": 272000000, "wood": 272000000, "herb": 116000000}, "28": {"grain": 382000000, "wood": 382000000, "herb": 151000000}, "29": {"grain": 515000000, "wood": 515000000, "herb": 211000000}, "30": {"grain": 684300000, "wood": 684300000, "herb": 303700000}}, "해독제 작업장": {"1": {"grain": 9, "wood": 9, "herb": 0}, "2": {"grain": 148, "wood": 148, "herb": 0}, "3": {"grain": 677, "wood": 677, "herb": 0}, "4": {"grain": 1630, "wood": 1630, "herb": 0}, "5": {"grain": 3555, "wood": 3555, "herb": 0}, "6": {"grain": 10500, "wood": 10500, "herb": 0}, "7": {"grain": 20900, "wood": 20900, "herb": 0}, "8": {"grain": 31900, "wood": 31900, "herb": 0}, "9": {"grain": 52100, "wood": 52100, "herb": 16600}, "10": {"grain": 62790, "wood": 62790, "herb": 19150}, "11": {"grain": 157000, "wood": 157000, "herb": 51300}, "12": {"grain": 259000, "wood": 259000, "herb": 86700}, "13": {"grain": 282000, "wood": 282000, "herb": 92800}, "14": {"grain": 393000, "wood": 393000, "herb": 132000}, "15": {"grain": 573600, "wood": 573600, "herb": 176500}, "16": {"grain": 968000, "wood": 968000, "herb": 330000}, "17": {"grain": 1240000, "wood": 1240000, "herb": 421000}, "18": {"grain": 2290000, "wood": 2290000, "herb": 720000}, "19": {"grain": 2710000, "wood": 2710000, "herb": 879000}, "20": {"grain": 4876000, "wood": 4876000, "herb": 1628000}, "21": {"grain": 7010000, "wood": 7010000, "herb": 2310000}, "22": {"grain": 9060000, "wood": 9060000, "herb": 2830000}, "23": {"grain": 10800000, "wood": 10800000, "herb": 3450000}, "24": {"grain": 14200000, "wood": 14200000, "herb": 4660000}, "25": {"grain": 24510000, "wood": 24510000, "herb": 7510000}, "26": {"grain": 34900000, "wood": 34900000, "herb": 10800000}, "27": {"grain": 43500000, "wood": 43500000, "herb": 14400000}, "28": {"grain": 61400000, "wood": 61400000, "herb": 21000000}, "29": {"grain": 86500000, "wood": 86500000, "herb": 29000000}, "30": {"grain": 125500000, "wood": 125500000, "herb": 40560000}}};
+const BUILDING_TIME_DATA = {"연구소": {"1": 2, "2": 15, "3": 30, "4": 90, "5": 650, "6": 2000, "7": 5034, "8": 9533, "9": 13880, "10": 18066, "11": 22788, "12": 29624, "13": 38512, "14": 50065, "15": 70091, "16": 98128, "17": 137379, "18": 192330, "19": 269262, "20": 376968, "21": 505060, "22": 656578, "23": 853552, "24": 1194972, "25": 1672960, "26": 2342145, "27": 3279003, "28": 4590603, "29": 5967784, "30": 7758120}, "훈련장": {"1": 2, "2": 63, "3": 107, "4": 237, "5": 640, "6": 2200, "7": 4358, "8": 8568, "9": 12015, "10": 15484, "11": 19533, "12": 25392, "13": 33010, "14": 42913, "15": 60078, "16": 84110, "17": 117753, "18": 164855, "19": 230796, "20": 323115, "21": 432909, "22": 562781, "23": 731615, "24": 1024262, "25": 1433966, "26": 2007552, "27": 2810574, "28": 3934803, "29": 5115243, "30": 6649817}, "해독제 작업장": {"1": 2, "2": 5, "3": 30, "4": 220, "5": 300, "6": 480, "7": 640, "8": 1550, "9": 2155, "10": 2687, "11": 3255, "12": 4232, "13": 5501, "14": 7153, "15": 10013, "16": 14018, "17": 19626, "18": 27476, "19": 38466, "20": 53852, "21": 72152, "22": 93797, "23": 121936, "24": 170711, "25": 238995, "26": 334592, "27": 468429, "28": 655801, "29": 852541, "30": 1108303}};
+Object.assign(BUILDING_DATA,{"성벽":{"1":{"grain":9,"wood":29,"herb":0},"2":{"grain":21,"wood":66,"herb":0},"3":{"grain":337,"wood":1029,"herb":0},"4":{"grain":836,"wood":2521,"herb":0},"5":{"grain":6848,"wood":20140,"herb":0},"6":{"grain":31190,"wood":94610,"herb":0},"7":{"grain":78140,"wood":231500,"herb":0},"8":{"grain":126500,"wood":379600,"herb":0},"9":{"grain":209700,"wood":619100,"herb":134600},"10":{"grain":253200,"wood":759700,"herb":163300},"11":{"grain":595600,"wood":1825000,"herb":406300},"12":{"grain":1104000,"wood":3210000,"herb":703700},"13":{"grain":1258000,"wood":3670000,"herb":761400},"14":{"grain":1671000,"wood":5119000,"herb":1046000},"15":{"grain":2204000,"wood":6516000,"herb":1520000},"16":{"grain":3948000,"wood":11560000,"herb":2666000},"17":{"grain":5421000,"wood":16360000,"herb":3542000},"18":{"grain":8865000,"wood":26980000,"herb":5718000},"19":{"grain":11550000,"wood":34650000,"herb":6907000},"20":{"grain":20020000,"wood":60050000,"herb":12970000},"21":{"grain":26830000,"wood":80500000,"herb":17130000},"22":{"grain":35580000,"wood":108700000,"herb":21950000},"23":{"grain":46120000,"wood":143500000,"herb":27650000}},"연맹회관":{"1":{"grain":89,"wood":29,"herb":0},"2":{"grain":228,"wood":73,"herb":0},"3":{"grain":952,"wood":337,"herb":0},"4":{"grain":2513,"wood":836,"herb":0},"5":{"grain":20840,"wood":7087,"herb":0},"6":{"grain":63340,"wood":20770,"herb":0},"7":{"grain":125600,"wood":42910,"herb":0},"8":{"grain":182800,"wood":62540,"herb":0},"9":{"grain":310100,"wood":100000,"herb":104500},"10":{"grain":383200,"wood":124300,"herb":122800},"11":{"grain":957500,"wood":319200,"herb":313600},"12":{"grain":1547000,"wood":512500,"herb":527500},"13":{"grain":1712000,"wood":584200,"herb":558600},"14":{"grain":2435000,"wood":821800,"herb":766900},"15":{"grain":3251000,"wood":1052000,"herb":1100000},"16":{"grain":6396000,"wood":2097000,"herb":1844000},"17":{"grain":8286000,"wood":2727000,"herb":2599000},"18":{"grain":13630000,"wood":4477000,"herb":4503000},"19":{"grain":16510000,"wood":5340000,"herb":5493000},"20":{"grain":29540000,"wood":9850000,"herb":9578000},"21":{"grain":41840000,"wood":13950000,"herb":13150000},"22":{"grain":54720000,"wood":18240000,"herb":16620000},"23":{"grain":65810000,"wood":22260000,"herb":22700000},"24":{"grain":85280000,"wood":28090000,"herb":27210000},"25":{"grain":133600000,"wood":45790000,"herb":43860000},"26":{"grain":209800000,"wood":70290000,"herb":65340000},"27":{"grain":259200000,"wood":87740000,"herb":87170000},"28":{"grain":387600000,"wood":125700000,"herb":122000000}},"의무실":{"1":{"grain":14,"wood":4,"herb":0},"2":{"grain":228,"wood":73,"herb":0},"3":{"grain":984,"wood":337,"herb":0},"4":{"grain":2476,"wood":836,"herb":0},"5":{"grain":19280,"wood":6556,"herb":0},"6":{"grain":88910,"wood":29310,"herb":0},"7":{"grain":187800,"wood":63640,"herb":0},"8":{"grain":286200,"wood":95720,"herb":0},"9":{"grain":461600,"wood":157100,"herb":115700},"10":{"grain":554700,"wood":188200,"herb":151700},"11":{"grain":1415000,"wood":475000,"herb":381800},"12":{"grain":2427000,"wood":798700,"herb":648500},"13":{"grain":2514000,"wood":841300,"herb":682600},"14":{"grain":3768000,"wood":1222000,"herb":980000},"15":{"grain":5096000,"wood":1699000,"herb":1422000},"16":{"grain":8862000,"wood":2921000,"herb":2281000},"17":{"grain":11660000,"wood":3886000,"herb":3194000},"18":{"grain":21320000,"wood":7006000,"herb":5468000},"19":{"grain":24760000,"wood":8221000,"herb":6286000},"20":{"grain":45300000,"wood":15100000,"herb":12270000},"21":{"grain":64640000,"wood":21550000,"herb":16630000},"22":{"grain":82730000,"wood":27240000,"herb":22750000}},"병영":{"1":{"grain":14,"wood":4,"herb":0},"2":{"grain":43,"wood":13,"herb":0},"3":{"grain":974,"wood":337,"herb":0},"4":{"grain":2609,"wood":836,"herb":0},"5":{"grain":19800,"wood":6731,"herb":0},"6":{"grain":61550,"wood":20180,"herb":0},"7":{"grain":115400,"wood":39440,"herb":0},"8":{"grain":191700,"wood":65580,"herb":0},"9":{"grain":306500,"wood":98900,"herb":80990},"10":{"grain":378900,"wood":122900,"herb":96500},"11":{"grain":912800,"wood":304300,"herb":249800},"12":{"grain":1585000,"wood":525200,"herb":399700},"13":{"grain":1675000,"wood":571400,"herb":492200},"14":{"grain":2401000,"wood":810500,"herb":672500},"15":{"grain":3277000,"wood":1060000,"herb":934600},"16":{"grain":6230000,"wood":2043000,"herb":1594000},"17":{"grain":8085000,"wood":2661000,"herb":2038000},"18":{"grain":14510000,"wood":4768000,"herb":3553000},"19":{"grain":16960000,"wood":5486000,"herb":4279000},"20":{"grain":29110000,"wood":9700000,"herb":7992000},"21":{"grain":44030000,"wood":14680000,"herb":11200000},"22":{"grain":51920000,"wood":17310000,"herb":14870000},"23":{"grain":69820000,"wood":23610000,"herb":17850000},"24":{"grain":81020000,"wood":26690000,"herb":22400000},"25":{"grain":134700000,"wood":46170000,"herb":39540000},"26":{"grain":196700000,"wood":65880000,"herb":56140000},"27":{"grain":251400000,"wood":85100000,"herb":70230000}},"전사 조각상":{"1":{"grain":29,"wood":89,"herb":0},"2":{"grain":73,"wood":228,"herb":0},"3":{"grain":337,"wood":992,"herb":0},"4":{"grain":836,"wood":2457,"herb":0},"5":{"grain":9850,"wood":29550,"herb":0},"6":{"grain":28930,"wood":87760,"herb":0},"7":{"grain":58380,"wood":172300,"herb":0},"8":{"grain":98950,"wood":295800,"herb":0},"9":{"grain":163400,"wood":480000,"herb":99700},"10":{"grain":187300,"wood":551900,"herb":118700},"11":{"grain":488500,"wood":1455000,"herb":289800},"12":{"grain":789700,"wood":2399000,"herb":495600},"13":{"grain":877600,"wood":2623000,"herb":536000},"14":{"grain":1234000,"wood":3806000,"herb":788300},"15":{"grain":1709000,"wood":5126000,"herb":1086000},"16":{"grain":3010000,"wood":9130000,"herb":1908000},"17":{"grain":3869000,"wood":11610000,"herb":2466000},"18":{"grain":6913000,"wood":21040000,"herb":4480000},"19":{"grain":7900000,"wood":23790000,"herb":5065000},"20":{"grain":14890000,"wood":44660000,"herb":9996000},"21":{"grain":21550000,"wood":64650000,"herb":13060000},"22":{"grain":28260000,"wood":85820000,"herb":16840000},"23":{"grain":33930000,"wood":99800000,"herb":22140000},"24":{"grain":44410000,"wood":134300000,"herb":26560000},"25":{"grain":72030000,"wood":220100000,"herb":46340000}},"농장":{"1":{"grain":0,"wood":0,"herb":0},"2":{"grain":73,"wood":225,"herb":0},"3":{"grain":337,"wood":1040,"herb":0},"4":{"grain":836,"wood":2423,"herb":0},"5":{"grain":1761,"wood":5284,"herb":0},"6":{"grain":5231,"wood":15390,"herb":0},"7":{"grain":9690,"wood":29060,"herb":0},"8":{"grain":15450,"wood":47330,"herb":0},"9":{"grain":25210,"wood":75630,"herb":16190},"10":{"grain":31080,"wood":93240,"herb":20580},"11":{"grain":74200,"wood":222600,"herb":49100},"12":{"grain":139500,"wood":415000,"herb":82700},"13":{"grain":154200,"wood":452200,"herb":88810}},"제재소":{"1":{"grain":5,"wood":0,"herb":0},"2":{"grain":225,"wood":66,"herb":0},"3":{"grain":976,"wood":337,"herb":0},"4":{"grain":2411,"wood":836,"herb":0},"5":{"grain":5107,"wood":1702,"herb":0},"6":{"grain":14670,"wood":4987,"herb":0},"7":{"grain":31340,"wood":10450,"herb":0},"8":{"grain":49890,"wood":16290,"herb":0},"9":{"grain":75520,"wood":25170,"herb":16170},"10":{"grain":91770,"wood":30590,"herb":20270},"11":{"grain":219200,"wood":74340,"herb":49320},"12":{"grain":408500,"wood":132700,"herb":85900},"13":{"grain":435800,"wood":148600,"herb":94150}},"약초밭":{"1":{"grain":8,"wood":8,"herb":0},"2":{"grain":135,"wood":135,"herb":0},"3":{"grain":677,"wood":677,"herb":0},"4":{"grain":1688,"wood":1688,"herb":0},"5":{"grain":3469,"wood":3469,"herb":0},"6":{"grain":10100,"wood":10100,"herb":0},"7":{"grain":20930,"wood":20930,"herb":0},"8":{"grain":32150,"wood":32150,"herb":0},"9":{"grain":51270,"wood":51270,"herb":17590},"10":{"grain":62390,"wood":62390,"herb":19170},"11":{"grain":152800,"wood":152800,"herb":49030},"12":{"grain":257000,"wood":257000,"herb":82450},"13":{"grain":284700,"wood":284700,"herb":95290}},"곡물 창고":{"1":{"grain":4,"wood":14,"herb":0},"2":{"grain":73,"wood":228,"herb":0},"3":{"grain":337,"wood":986,"herb":0},"4":{"grain":836,"wood":2572,"herb":0},"5":{"grain":6901,"wood":20300,"herb":0},"6":{"grain":30120,"wood":91370,"herb":0},"7":{"grain":59950,"wood":176900,"herb":0},"8":{"grain":92400,"wood":276200,"herb":0},"9":{"grain":161800,"wood":475300,"herb":146700},"10":{"grain":183300,"wood":540300,"herb":176700}},"목재 창고":{"1":{"grain":14,"wood":4,"herb":0},"2":{"grain":228,"wood":73,"herb":0},"3":{"grain":1011,"wood":337,"herb":0},"4":{"grain":2606,"wood":836,"herb":0},"5":{"grain":19370,"wood":6585,"herb":0},"6":{"grain":92130,"wood":30370,"herb":0},"7":{"grain":186200,"wood":63100,"herb":0},"8":{"grain":287400,"wood":96120,"herb":0},"9":{"grain":470800,"wood":160300,"herb":154600},"10":{"grain":546000,"wood":185200,"herb":178400}},"약초 창고":{"1":{"grain":9,"wood":9,"herb":0},"2":{"grain":148,"wood":148,"herb":0},"3":{"grain":677,"wood":677,"herb":0},"4":{"grain":1684,"wood":1684,"herb":0},"5":{"grain":13430,"wood":13430,"herb":0},"6":{"grain":60230,"wood":60230,"herb":0},"7":{"grain":120000,"wood":120000,"herb":0},"8":{"grain":194200,"wood":194200,"herb":0},"9":{"grain":296600,"wood":296600,"herb":151000},"10":{"grain":373400,"wood":373400,"herb":186600}}});
+Object.assign(BUILDING_TIME_DATA,{"성벽":{"1":2,"2":30,"3":60,"4":88,"5":653,"6":1999,"7":5418,"8":10950,"9":15078,"10":20138,"11":26043,"12":33857,"13":44013,"14":57218,"15":80105,"16":112146,"17":157004,"18":219807,"19":307728,"20":430820,"21":577211,"22":750375,"23":975487},"연맹회관":{"1":2,"2":30,"3":105,"4":180,"5":640,"6":1303,"7":2930,"8":5745,"9":7966,"10":10348,"11":13022,"12":16928,"13":22006,"14":28609,"15":40052,"16":56073,"17":78502,"18":109904,"19":153864,"20":215410,"21":288606,"22":375187,"23":487744,"24":682841,"25":955978,"26":1338369,"27":1873716,"28":2623202},"의무실":{"1":2,"2":30,"3":62,"4":88,"5":638,"6":2300,"7":4388,"8":8556,"9":12000,"10":15025,"11":19533,"12":25392,"13":33010,"14":42913,"15":60078,"16":84110,"17":117753,"18":164855,"19":230796,"20":323115,"21":432909,"22":562781},"병영":{"1":2,"2":63,"3":107,"4":237,"5":781,"6":1856,"7":2958,"8":5316,"9":8048,"10":10565,"11":13022,"12":16928,"13":22006,"14":28609,"15":40052,"16":56073,"17":78502,"18":109904,"19":153864,"20":215410,"21":288606,"22":375187,"23":487744,"24":682841,"25":955978,"26":1338369,"27":1873716},"전사 조각상":{"1":2,"2":30,"3":100,"4":228,"5":1200,"6":2312,"7":4407,"8":8609,"9":11914,"10":15608,"11":19503,"12":25392,"13":33010,"14":42913,"15":60078,"16":84110,"17":117753,"18":164855,"19":230796,"20":323115,"21":432909,"22":562781,"23":731615,"24":1024262,"25":1433966},"농장":{"1":2,"2":38,"3":107,"4":177,"5":236,"6":411,"7":648,"8":1510,"9":2110,"10":2700,"11":3255,"12":4232,"13":5501},"제재소":{"1":2,"2":38,"3":107,"4":177,"5":236,"6":411,"7":649,"8":1508,"9":2108,"10":2700,"11":3255,"12":4232,"13":5501},"약초밭":{"1":2,"2":38,"3":107,"4":170,"5":220,"6":438,"7":657,"8":1500,"9":2100,"10":2700,"11":3255,"12":4232,"13":5501},"곡물 창고":{"1":2,"2":30,"3":107,"4":237,"5":647,"6":2280,"7":4350,"8":8555,"9":11468,"10":15480},"목재 창고":{"1":2,"2":30,"3":107,"4":237,"5":647,"6":2280,"7":4350,"8":8555,"9":11468,"10":15480},"약초 창고":{"1":2,"2":30,"3":107,"4":237,"5":647,"6":2280,"7":4350,"8":8555,"9":11468,"10":15888}});
+
+
+
+const current = document.getElementById('current');
+const target = document.getElementById('target');
+const discount = document.getElementById('discount');
+const buildSpeed = document.getElementById('buildSpeed');
+
+for (let i=1;i<=30;i++) {
+  current.add(new Option(`Lv.${i}`, i));
+  target.add(new Option(`Lv.${i}`, i));
+}
+current.value = 29;
+target.value = 30;
+
+function fmt(n) {
+  return Number(n).toLocaleString('ko-KR');
+}
+
+function fmtRounded(n) {
+  n = Math.trunc(n);
+  if (n >= 1000000000) {
+    return (Math.round(n / 100000000) / 10).toFixed(1).replace(/\.0$/, '') + 'B';
+  }
+  if (n >= 1000000) {
+    return (Math.round(n / 100000) / 10).toFixed(1).replace(/\.0$/, '') + 'M';
+  }
+  if (n >= 1000) {
+    return (Math.round(n / 100) / 10).toFixed(1).replace(/\.0$/, '') + 'K';
+  }
+  return String(n);
+}
+
+function fmtWithRounded(n) {
+  return `${fmtRounded(n)} (${fmt(n)})`;
+}
+
+
+
+function timeToSeconds(s) {
+  if (!s || s === '이미 건설됨' || s === '1분 미만') return 0;
+  let total = 0;
+  const d = s.match(/(\d+)\s*일/);
+  const h = s.match(/(\d+)\s*시간/);
+  const m = s.match(/(\d+)\s*분/);
+  const sec = s.match(/(\d+)\s*초/);
+  if (d) total += Number(d[1]) * 86400;
+  if (h) total += Number(h[1]) * 3600;
+  if (m) total += Number(m[1]) * 60;
+  if (sec) total += Number(sec[1]);
+  return total;
+}
+
+function formatTime(totalSeconds) {
+  totalSeconds = Math.max(0, Math.trunc(totalSeconds));
+  const days = Math.floor(totalSeconds / 86400);
+  totalSeconds %= 86400;
+  const hours = Math.floor(totalSeconds / 3600);
+  totalSeconds %= 3600;
+  const mins = Math.floor(totalSeconds / 60);
+  const secs = totalSeconds % 60;
+  const parts = [];
+  if (days) parts.push(`${days}일`);
+  if (hours || days) parts.push(`${hours}시간`);
+  parts.push(`${mins}분`);
+  parts.push(`${secs}초`);
+  return parts.join(' ');
+}
+
+
+function collectPrerequisites(c, t) {
+  const reqMap = {};
+
+  for (let lv = c + 1; lv <= t; lv++) {
+    const reqText = DATA[lv]?.req || '';
+    if (!reqText || reqText === '없음') continue;
+
+    const parts = reqText.split('·').map(x => x.trim()).filter(Boolean);
+    for (const part of parts) {
+      const m = part.match(/^(.*?)\s+Lv\.(\d+)$/);
+      if (!m) continue;
+      const name = m[1].trim();
+      const level = Number(m[2]);
+      if (!reqMap[name] || level > reqMap[name]) reqMap[name] = level;
+    }
+  }
+  return reqMap;
+}
+
+function renderPrerequisites(c, t) {
+  const box = document.getElementById('prereqInputs');
+  const reqMap = collectPrerequisites(c, t);
+  const entries = Object.entries(reqMap);
+
+  if (!entries.length) {
+    box.innerHTML = '<div class="note">이 구간에는 입력할 선행건물이 없습니다.</div>';
+    return;
+  }
+
+  box.innerHTML = entries.map(([name, required]) => `
+    <div class="prereq-row">
+      <div class="prereq-name">${name}<div class="note">필요 Lv.${required}</div></div>
+      <input class="prereq-input" type="number" inputmode="numeric"
+        min="0" max="30" step="1" placeholder="현재 Lv."
+        data-name="${name}" data-required="${required}">
+      <div class="prereq-status" data-status="${name}"></div>
+    </div>
+  `).join('');
+
+  box.querySelectorAll('.prereq-input').forEach(input => {
+    input.addEventListener('input', () => {
+      const required = Number(input.dataset.required);
+      const currentLv = input.value.trim() === '' ? null : Number(input.value);
+      const status = box.querySelector(`[data-status="${input.dataset.name}"]`);
+
+      if (currentLv === null || !Number.isFinite(currentLv)) {
+        status.className = 'prereq-status';
+        status.textContent = '';
+      } else if (currentLv >= required) {
+        status.className = 'prereq-status prereq-ok';
+        status.textContent = '완료 ✓';
+      } else {
+        status.className = 'prereq-status prereq-need';
+        status.textContent = `${required - currentLv}레벨 더 필요`;
+      }
+    });
+  });
+}
+
+function resetAfterStage1() {
+  document.getElementById('stage2').classList.remove('show');
+  document.getElementById('resultResourceCard').classList.remove('show');
+  document.getElementById('resultTimeCard').classList.remove('show');
+  document.getElementById('resultStepsCard').classList.remove('show');
+}
+
+function checkRequirements() {
+  const c = Number(current.value);
+  const t = Number(target.value);
+
+  resetAfterStage1();
+
+  if (t <= c) {
+    alert('올릴 성당 레벨을 현재 레벨보다 높게 선택해 주세요.');
+    return;
+  }
+
+  renderPrerequisites(c, t);
+
+  const prereqBox = document.getElementById('prereqInputs');
+  if (prereqBox) {
+    prereqBox.querySelectorAll('.prereq-input').forEach(function(input){
+      const minusBtn = document.createElement('button');
+      minusBtn.type = 'button';
+      minusBtn.className = 'minus-one-btn';
+      minusBtn.textContent = '-1';
+      minusBtn.addEventListener('click', function(){
+        const required = Number(input.dataset.required || 0);
+        const current = input.value.trim() === '' ? required : Number(input.value);
+        const safeCurrent = Number.isFinite(current) ? current : required;
+        input.value = Math.max(0, safeCurrent - 1);
+        btn.classList.remove('done');
+        btn.textContent = '전체';
+      });
+
+      const plusBtn = document.createElement('button');
+      plusBtn.type = 'button';
+      plusBtn.className = 'plus-one-btn';
+      plusBtn.textContent = '+1';
+      plusBtn.addEventListener('click', function(){
+        const required = Number(input.dataset.required || 0);
+        const current = input.value.trim() === '' ? 0 : Number(input.value);
+        const safeCurrent = Number.isFinite(current) ? current : 0;
+        input.value = Math.min(required, safeCurrent + 1);
+        btn.classList.remove('done');
+        btn.textContent = '전체';
+      });
+
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'complete-btn';
+      btn.textContent = '전체';
+
+      btn.addEventListener('click', function(){
+        input.value = input.dataset.required;
+        btn.classList.add('done');
+        btn.textContent = '전체';
+      });
+
+      const buttonGroup = document.createElement('div');
+      buttonGroup.className = 'level-button-group';
+      buttonGroup.appendChild(minusBtn);
+      buttonGroup.appendChild(plusBtn);
+      buttonGroup.appendChild(btn);
+      input.parentElement.appendChild(buttonGroup);
+    });
+  }
+
+  document.getElementById('stage2').classList.add('show');
+  document.getElementById('stage2').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function confirmPrerequisites() {
+  const inputs = [...document.querySelectorAll('#prereqInputs .prereq-input')];
+  const missing = inputs.filter(x => x.value === '');
+
+  if (missing.length) {
+    alert('필요 건물의 현재 레벨을 모두 입력해 주세요.');
+    return;
+  }
+
+  calc();
+  document.getElementById('resultResourceCard').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+
+
+
+// V34: verified representative-building Lv.30 extensions
+for (const [name, levels] of Object.entries({"성벽": {"24": {"grain": 54770000, "wood": 163300000, "herb": 34910000}, "25": {"grain": 96280000, "wood": 290800000, "herb": 64600000}, "26": {"grain": 130700000, "wood": 402200000, "herb": 84890000}, "27": {"grain": 173200000, "wood": 510000000, "herb": 108200000}, "28": {"grain": 260900000, "wood": 772400000, "herb": 161000000}, "29": {"grain": 355300000, "wood": 1045000000, "herb": 225400000}, "30": {"grain": 499700000, "wood": 1457000000, "herb": 312400000}}, "연맹회관": {"29": {"grain": 523400000, "wood": 171100000, "herb": 175000000}, "30": {"grain": 723200000, "wood": 241100000, "herb": 222400000}}, "의무실": {"23": {"grain": 100200000, "wood": 34060000, "herb": 25800000}, "24": {"grain": 123600000, "wood": 40880000, "herb": 35210000}, "25": {"grain": 216500000, "wood": 70870000, "herb": 57220000}, "26": {"grain": 307600000, "wood": 102500000, "herb": 77680000}, "27": {"grain": 402800000, "wood": 134300000, "herb": 110300000}, "28": {"grain": 553700000, "wood": 181200000, "herb": 154700000}, "29": {"grain": 786500000, "wood": 265600000, "herb": 212300000}, "30": {"grain": 1104000000, "wood": 361500000, "herb": 296900000}}, "병영": {"28": {"grain": 359200000, "wood": 116500000, "herb": 102110000}, "29": {"grain": 506000000, "wood": 165400000, "herb": 139400000}, "30": {"grain": 695200000, "wood": 231700000, "herb": 180600000}}, "전사 조각상": {"26": {"grain": 101800000, "wood": 305500000, "herb": 63020000}, "27": {"grain": 124500000, "wood": 373400000, "herb": 81590000}, "28": {"grain": 183600000, "wood": 561000000, "herb": 125800000}, "29": {"grain": 258500000, "wood": 765400000, "herb": 163400000}, "30": {"grain": 366000000, "wood": 1118000000, "herb": 227700000}}})) {
+  if (!BUILDING_DATA[name]) BUILDING_DATA[name] = {};
+  Object.assign(BUILDING_DATA[name], levels);
+}
+for (const [name, levels] of Object.entries({"성벽": {"24": 1365682, "25": 1911955, "26": 2676737, "27": 3747432, "28": 5246404, "29": 6820324, "30": 8866423}, "연맹회관": {"29": 3410162, "30": 4433212}, "의무실": {"23": 731615, "24": 1024262, "25": 1433966, "26": 2007552, "27": 2810574, "28": 3934803, "29": 5115243, "30": 6649817}, "병영": {"28": 2623202, "29": 3410162, "30": 4433212}, "전사 조각상": {"26": 2007552, "27": 2810574, "28": 3934803, "29": 5115243, "30": 6649817}})) {
+  if (!BUILDING_TIME_DATA[name]) BUILDING_TIME_DATA[name] = {};
+  Object.assign(BUILDING_TIME_DATA[name], levels);
+}
+
+const STANDALONE_BUILDINGS = {
+  research: '연구소',
+  training: '훈련장',
+  wall: '성벽',
+  alliance: '연맹회관',
+  hospital: '의무실',
+  barracks: '병영',
+  warriorStatue: '전사 조각상'
+};
+
+const STANDALONE_MAX_LEVEL = {
+  research: 30,
+  training: 30,
+  wall: 30,
+  alliance: 30,
+  hospital: 30,
+  barracks: 30,
+  warriorStatue: 30
+};
+
+
+
+function refreshLevelOptionsForBuilding() {
+  const key = document.getElementById('building').value;
+  const maxLv = key === 'sanctuary' ? 30 : (STANDALONE_MAX_LEVEL[key] || 30);
+  const currentSel = document.getElementById('current');
+  const targetSel = document.getElementById('target');
+  const oldCurrent = Math.min(Number(currentSel.value || 1), Math.max(1, maxLv - 1));
+  const oldTarget = Math.min(Number(targetSel.value || 2), maxLv);
+
+  currentSel.innerHTML = '';
+  targetSel.innerHTML = '';
+
+  for (let lv = 1; lv <= maxLv; lv++) {
+    const o1 = document.createElement('option');
+    o1.value = lv; o1.textContent = 'Lv.' + lv;
+    currentSel.appendChild(o1);
+
+    const o2 = document.createElement('option');
+    o2.value = lv; o2.textContent = 'Lv.' + lv;
+    targetSel.appendChild(o2);
+  }
+
+  currentSel.value = String(oldCurrent);
+  targetSel.value = String(Math.max(oldCurrent + 1, oldTarget));
+}
+
+function standaloneBuildingName() {
+  return STANDALONE_BUILDINGS[document.getElementById('building').value] || null;
+}
+function calc() {
+  const standaloneName = standaloneBuildingName();
+  if (standaloneName) {
+    const c=Number(document.getElementById('current').value);
+    const t=Number(document.getElementById('target').value);
+    const reduction=Number(document.getElementById('discount').value||0);
+    const speed=Number(document.getElementById('buildSpeed').value||0);
+
+    if (t <= c) {
+      document.getElementById('grain').textContent='0';
+      document.getElementById('wood').textContent='0';
+      document.getElementById('herb').textContent='0';
+      document.getElementById('baseTime').textContent='0분 0초';
+      document.getElementById('appliedTime').textContent='0분 0초';
+      document.getElementById('resourceBreakdown').innerHTML='<div class="note">목표 레벨을 현재 레벨보다 높게 선택해 주세요.</div>';
+      document.getElementById('timeBreakdown').innerHTML='';
+      document.getElementById('resultResourceCard').classList.add('show');
+      document.getElementById('resultTimeCard').classList.add('show');
+      document.getElementById('resultStepsCard').classList.remove('show');
+      return;
+    }
+
+    let grain=0,wood=0,herb=0,base=0,applied=0;
+    const data = BUILDING_DATA[standaloneName] || {};
+    const times = BUILDING_TIME_DATA[standaloneName] || {};
+    const missingLevels = [];
+
+    for(let lv=c+1;lv<=t;lv++){
+      const r=data[lv];
+      if(r){
+        grain+=Math.floor((r.grain||0)*(1-reduction/100));
+        wood+=Math.floor((r.wood||0)*(1-reduction/100));
+        herb+=Math.floor((r.herb||0)*(1-reduction/100));
+      } else {
+        missingLevels.push(lv);
+      }
+      const s=times[lv]||0;
+      base+=s;
+      applied+=Math.ceil(s/(1+speed/100));
+    }
+
+    document.getElementById('grain').textContent=fmtWithRounded(grain);
+    document.getElementById('wood').textContent=fmtWithRounded(wood);
+    document.getElementById('herb').textContent=fmtWithRounded(herb);
+    document.getElementById('grainBase').textContent=fmtWithRounded(grain);
+    document.getElementById('woodBase').textContent=fmtWithRounded(wood);
+    document.getElementById('herbBase').textContent=fmtWithRounded(herb);
+    document.getElementById('discountView').textContent=reduction+'%';
+    document.getElementById('count').textContent=(t-c);
+    document.getElementById('stars').textContent='-';
+    document.getElementById('baseTime').textContent=formatTime(base);
+    document.getElementById('appliedTime').textContent=formatTime(applied);
+    document.getElementById('speedView').textContent=speed+'%';
+    document.getElementById('resourceResultNote').textContent=standaloneName+' 자체 업그레이드 필요 자원';
+    document.getElementById('resourceSummaryBox').style.display='none';
+    document.getElementById('resourceBreakdown').style.display='none';
+    document.getElementById('timeBreakdown').style.display='none';
+    document.getElementById('baseTimeStat').style.display='none';
+    document.getElementById('speedSummaryBox').style.display='none';
+    document.getElementById('timeFormulaNote').style.display='none';
+
+    let resHtml = `<div><strong>${standaloneName} Lv.${c} → Lv.${t}</strong><br>🌾 ${fmtWithRounded(grain)} · 🪵 ${fmtWithRounded(wood)} · 🌿 ${fmtWithRounded(herb)}</div>`;
+    if (missingLevels.length) {
+      resHtml = `<div class="note">⚠️ ${standaloneName} Lv.${missingLevels.join(', Lv.')} 데이터가 아직 연결되지 않았습니다.</div>`;
+      document.getElementById('grain').textContent='-';
+      document.getElementById('wood').textContent='-';
+      document.getElementById('herb').textContent='-';
+      document.getElementById('baseTime').textContent='-';
+      document.getElementById('appliedTime').textContent='-';
+    }
+    document.getElementById('resourceBreakdown').innerHTML=resHtml;
+
+    document.getElementById('timeBreakdown').innerHTML=
+      `<div class="note" style="margin-bottom:8px">건설시간 내역</div>
+       <div class="time-item">
+         <div class="time-item-title">${standaloneName}</div>
+         <div class="time-item-line"><strong>${formatTime(applied)}</strong></div>
+       </div>`;
+
+    document.getElementById('resultResourceCard').classList.add('show');
+    document.getElementById('resultTimeCard').classList.add('show');
+    document.getElementById('resultStepsCard').classList.remove('show');
+    document.getElementById('resultResourceCard').scrollIntoView({behavior:'smooth',block:'start'});
+    return;
+  }
+
+  // Sanctuary calculation values
+  const c = Number(document.getElementById('current').value);
+  const t = Number(document.getElementById('target').value);
+
+  let rate = document.getElementById('discount').value.trim() === '' ? 0 : Number(document.getElementById('discount').value);
+  if (!Number.isFinite(rate)) rate = 0;
+  rate = Math.max(0, Math.min(100, rate));
+
+  let speed = document.getElementById('buildSpeed').value.trim() === '' ? 0 : Number(document.getElementById('buildSpeed').value);
+  if (!Number.isFinite(speed)) speed = 0;
+  speed = Math.max(0, speed);
+
+  if (t <= c) {
+    alert('올릴 성당 레벨을 현재 레벨보다 높게 선택해 주세요.');
+    return;
+  }
+
+  document.getElementById('resourceSummaryBox').style.display='block';
+  document.getElementById('resourceBreakdown').style.display='block';
+  document.getElementById('timeBreakdown').style.display='block';
+  document.getElementById('baseTimeStat').style.display='block';
+  document.getElementById('speedSummaryBox').style.display='block';
+  document.getElementById('timeFormulaNote').style.display='block';
+  document.getElementById('resourceResultNote').textContent='성당 + 부족한 선행건물 실제 필요 자원';
+
+  document.getElementById('resultResourceCard').classList.add('show');
+  document.getElementById('resultTimeCard').classList.add('show');
+  document.getElementById('resultStepsCard').classList.add('show');
+
+  let grain = 0, wood = 0, herb = 0;
+  let totalBaseSeconds = 0;
+  let totalAppliedSeconds = 0;
+  let sanctuaryBaseSeconds = 0;
+  let sanctuaryAppliedSeconds = 0;
+  let stepHtml = '';
+
+  for (let lv = c + 1; lv <= t; lv++) {
+    const d = DATA[lv];
+    grain += d.grain;
+    wood += d.wood;
+    herb += d.herb;
+    const sanctuaryLevelSeconds = timeToSeconds(d.time);
+    totalBaseSeconds += sanctuaryLevelSeconds;
+    sanctuaryBaseSeconds += sanctuaryLevelSeconds;
+    const sanctuaryLevelApplied = Math.ceil(sanctuaryLevelSeconds / (1 + speed / 100));
+    totalAppliedSeconds += sanctuaryLevelApplied;
+    sanctuaryAppliedSeconds += sanctuaryLevelApplied;
+
+    stepHtml += `
+      <div class="step">
+        <div class="step-head">
+          <span>성당 Lv.${lv}</span>
+          <span class="badge">${d.time}</span>
+        </div>
+        <div class="req">선행 건물: ${d.req}</div>
+        <div class="req">별 요구: ${d.stars ? fmt(d.stars) : '없음'}</div>
+      </div>`;
+  }
+
+  // 성당 외 선행건물의 부족 레벨 자원도 합산
+  const sanctuaryBase = {grain, wood, herb};
+  const prereqInputs = [...document.querySelectorAll('#prereqInputs .prereq-input')];
+  const prereqBreakdown = [];
+  const unsupported = [];
+
+  for (const input of prereqInputs) {
+    const name = input.dataset.name;
+    const required = Number(input.dataset.required);
+    const currentLv = Number(input.value || 0);
+
+    if (currentLv >= required) {
+      prereqBreakdown.push({name, from: currentLv, to: required, grain:0, wood:0, herb:0, baseSeconds:0, appliedSeconds:0, done:true});
+      continue;
+    }
+
+    const table = BUILDING_DATA[name];
+    if (!table) {
+      unsupported.push(name);
+      continue;
+    }
+
+    let bg = 0, bw = 0, bh = 0;
+    let bBaseSeconds = 0, bAppliedSeconds = 0;
+    const timeTable = BUILDING_TIME_DATA[name] || {};
+
+    for (let lv = currentLv + 1; lv <= required; lv++) {
+      const row = table[String(lv)];
+      if (row) {
+        bg += row.grain || 0;
+        bw += row.wood || 0;
+        bh += row.herb || 0;
+      }
+
+      const levelSeconds = Number(timeTable[String(lv)] || 0);
+      bBaseSeconds += levelSeconds;
+      bAppliedSeconds += Math.ceil(levelSeconds / (1 + speed / 100));
+    }
+
+    grain += bg;
+    wood += bw;
+    herb += bh;
+    totalBaseSeconds += bBaseSeconds;
+    totalAppliedSeconds += bAppliedSeconds;
+    prereqBreakdown.push({
+      name, from: currentLv, to: required,
+      grain:bg, wood:bw, herb:bh,
+      baseSeconds:bBaseSeconds, appliedSeconds:bAppliedSeconds,
+      done:false
+    });
+  }
+
+  const factor = 1 - rate / 100;
+  const appliedGrain = Math.floor(grain * factor);
+  const appliedWood = Math.floor(wood * factor);
+  const appliedHerb = Math.floor(herb * factor);
+
+  // 기본 필요량
+  document.getElementById('grainBase').textContent = fmt(grain);
+  document.getElementById('woodBase').textContent = fmt(wood);
+  document.getElementById('herbBase').textContent = fmt(herb);
+
+  // 감소율 적용 후 실제 소모량
+  document.getElementById('grain').textContent = fmtWithRounded(appliedGrain);
+  document.getElementById('wood').textContent = fmtWithRounded(appliedWood);
+  document.getElementById('herb').textContent = fmtWithRounded(appliedHerb);
+
+  const sanctuaryApplied = {
+    grain: Math.floor(sanctuaryBase.grain * factor),
+    wood: Math.floor(sanctuaryBase.wood * factor),
+    herb: Math.floor(sanctuaryBase.herb * factor)
+  };
+
+  let breakdownHtml = `
+    <div class="note" style="margin-bottom:8px">자원 포함 내역</div>
+    <div style="margin:6px 0 10px">
+      <strong>성당 Lv.${c} → Lv.${t}</strong><br>
+      <span class="note">식량 ${fmtWithRounded(sanctuaryApplied.grain)} · 목재 ${fmtWithRounded(sanctuaryApplied.wood)} · 약초 ${fmtWithRounded(sanctuaryApplied.herb)}</span>
+    </div>`;
+
+  for (const b of prereqBreakdown) {
+    if (b.done) {
+      continue;
+    }
+    const ag = Math.floor(b.grain * factor);
+    const aw = Math.floor(b.wood * factor);
+    const ah = Math.floor(b.herb * factor);
+    breakdownHtml += `
+      <div style="margin:7px 0">
+        <strong>${b.name} Lv.${b.from} → Lv.${b.to}</strong><br>
+        <span class="note">식량 ${fmtWithRounded(ag)} · 목재 ${fmtWithRounded(aw)} · 약초 ${fmtWithRounded(ah)}</span>
+      </div>`;
+  }
+
+  if (unsupported.length) {
+    breakdownHtml += `<div class="note" style="margin-top:10px">⚠️ 아직 자원 데이터가 연결되지 않은 선행건물: ${unsupported.join(', ')}</div>`;
+  }
+
+  document.getElementById('resourceBreakdown').innerHTML = breakdownHtml;
+
+  document.getElementById('discountView').textContent = `${rate}%`;
+  document.getElementById('count').textContent = t - c;
+  document.getElementById('stars').textContent =
+    DATA[t].stars ? fmt(DATA[t].stars) : '없음';
+
+  document.getElementById('baseTime').textContent = formatTime(totalBaseSeconds);
+  document.getElementById('appliedTime').textContent = formatTime(totalAppliedSeconds);
+  document.getElementById('speedView').textContent = `${speed}%`;
+
+  let timeHtml = `
+    <div class="note" style="margin-bottom:8px">건설시간 내역</div>
+    <div class="time-item">
+      <div class="time-item-title">성당</div>
+      <div class="time-item-line"><strong>${formatTime(sanctuaryAppliedSeconds)}</strong></div>
+    </div>`;
+
+  for (const b of prereqBreakdown) {
+    if (b.done) continue;
+
+    const sourceTimes = BUILDING_TIME_DATA[b.name];
+    if (!sourceTimes) continue;
+
+    let buildingAppliedSeconds = 0;
+    for (let lv = b.from + 1; lv <= b.to; lv++) {
+      if (sourceTimes[lv] != null) {
+        buildingAppliedSeconds += Math.ceil(sourceTimes[lv] / (1 + speed / 100));
+      }
+    }
+
+    timeHtml += `
+      <div class="time-item">
+        <div class="time-item-title">${b.name}</div>
+        <div class="time-item-line"><strong>${formatTime(buildingAppliedSeconds)}</strong></div>
+      </div>`;
+  }
+
+  if (unsupported.length) {
+    timeHtml += `<div class="note" style="margin-top:10px">⚠️ 아직 시간 데이터가 연결되지 않은 선행건물: ${unsupported.join(', ')}</div>`;
+  }
+
+  document.getElementById('timeBreakdown').innerHTML = timeHtml;
+  document.getElementById('steps').innerHTML = stepHtml;
+}
+
+document.getElementById('checkReqBtn').addEventListener('click', function(e){
+  const key = document.getElementById('building').value;
+  if (key === 'sanctuary') {
+    checkRequirements();
+  } else {
+    calc();
+  }
+});
+document.getElementById('confirmReqBtn').addEventListener('click', function(){
+  const inputs = [...document.querySelectorAll('#prereqInputs .prereq-input')];
+  const missing = inputs.filter(x => x.value === '');
+  if (missing.length) {
+    alert('필요 건물의 현재 레벨을 모두 입력해 주세요.');
+    return;
+  }
+  calc();
+  document.getElementById('resultResourceCard').classList.add('show');
+  document.getElementById('resultTimeCard').classList.add('show');
+  document.getElementById('resultStepsCard').classList.add('show');
+  document.getElementById('resultResourceCard').scrollIntoView({behavior:'smooth', block:'start'});
+});
+
+current.addEventListener('change', resetAfterStage1);
+target.addEventListener('change', resetAfterStage1);
+
+// 처음 열었을 때는 계산 전 상태
+document.getElementById('grainBase').textContent = '-';
+document.getElementById('woodBase').textContent = '-';
+document.getElementById('herbBase').textContent = '-';
+document.getElementById('grain').textContent = '-';
+document.getElementById('wood').textContent = '-';
+document.getElementById('herb').textContent = '-';
+document.getElementById('discountView').textContent = '-';
+document.getElementById('count').textContent = '-';
+document.getElementById('stars').textContent = '-';
+document.getElementById('baseTime').textContent = '-';
+document.getElementById('appliedTime').textContent = '-';
+document.getElementById('speedView').textContent = '-';
+document.getElementById('steps').innerHTML =
+  '<div class="note">설정을 선택한 뒤 <b>계산 시작</b>을 눌러주세요.</div>';
+
+document.getElementById('building').addEventListener('change',function(){
+  const key=this.value;
+  const isSanctuary=key==='sanctuary';
+  const name = isSanctuary ? '성당' : (STANDALONE_BUILDINGS[key] || '건물');
+  refreshLevelOptionsForBuilding();
+
+  document.getElementById('currentLevelLabel').textContent='현재 '+name+' 레벨';
+  document.getElementById('targetLevelLabel').textContent='올릴 '+name+' 레벨';
+  document.getElementById('checkReqBtn').textContent=isSanctuary?'필요 건물 확인':'결과 보기';
+  document.getElementById('stage2').classList.remove('show');
+  resetAfterStage1();
+});
+
+
+</script>
+
+<div class="creator-credit">제작 · #252 TKOR 달콩쓰<br><span class="version-credit">Calculator v1.0</span></div>
+<style>
+.creator-credit{
+  text-align:center;
+  margin:28px 0 12px;
+  color:#7f8a9b;
+  font-size:12px;
+  font-weight:600;
+  letter-spacing:.2px;
+}
+</style>
+
+
+<script>
+(function(){
+  const STORAGE_KEY = 'lastAsylumCalcSettings_v1';
+  const ids = ['buildingSelect','current','target','discount','buildSpeed'];
+
+  function saveSettings(){
+    try{
+      const data = {};
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) data[id] = el.value;
+      });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }catch(e){}
+  }
+
+  function restoreSettings(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return;
+      const data = JSON.parse(raw);
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if(el && data[id] !== undefined && data[id] !== null && data[id] !== ''){
+          el.value = data[id];
+        }
+      });
+
+      // Trigger building-change logic so level limits/button text match restored building.
+      const building = document.getElementById('buildingSelect');
+      if(building){
+        building.dispatchEvent(new Event('change', {bubbles:true}));
+        // Some change handlers may reset levels; restore them once more.
+        ['current','target','discount','buildSpeed'].forEach(id => {
+          const el = document.getElementById(id);
+          if(el && data[id] !== undefined && data[id] !== null && data[id] !== ''){
+            el.value = data[id];
+          }
+        });
+      }
+    }catch(e){}
+  }
+
+  window.addEventListener('DOMContentLoaded', function(){
+    restoreSettings();
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if(!el) return;
+      el.addEventListener('change', saveSettings);
+      el.addEventListener('input', saveSettings);
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
