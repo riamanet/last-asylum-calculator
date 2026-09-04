@@ -480,6 +480,18 @@ function formatTime(totalSeconds) {
 }
 
 
+function displayBuildingName(name) {
+  const DISPLAY_NAMES = {
+    '연맹회관': '길드 연락소',
+    '의무실': '병원',
+    '제재소': '벌목장',
+    '약초밭': '약초원',
+    '곡물 창고': '식량 창고',
+    '해독제 작업장': '항독소 작업장'
+  };
+  return DISPLAY_NAMES[name] || name;
+}
+
 function collectPrerequisites(c, t) {
   const reqMap = {};
 
@@ -511,7 +523,7 @@ function renderPrerequisites(c, t) {
 
   box.innerHTML = entries.map(([name, required]) => `
     <div class="prereq-row">
-      <div class="prereq-name">${name}<div class="note">필요 Lv.${required}</div></div>
+      <div class="prereq-name">${displayBuildingName(name)}<div class="note">필요 Lv.${required}</div></div>
       <input class="prereq-input" type="number" inputmode="numeric"
         min="0" max="30" step="1" placeholder="현재 Lv."
         data-name="${name}" data-required="${required}">
@@ -922,7 +934,7 @@ function calc() {
     const ah = Math.floor(b.herb * factor);
     breakdownHtml += `
       <div style="margin:7px 0">
-        <strong>${b.name} Lv.${b.from} → Lv.${b.to}</strong><br>
+        <strong>${displayBuildingName(b.name)} Lv.${b.from} → Lv.${b.to}</strong><br>
         <span class="note">식량 ${fmtWithRounded(ag)} · 목재 ${fmtWithRounded(aw)} · 약초 ${fmtWithRounded(ah)}</span>
       </div>`;
   }
@@ -964,7 +976,7 @@ function calc() {
 
     timeHtml += `
       <div class="time-item">
-        <div class="time-item-title">${b.name}</div>
+        <div class="time-item-title">${displayBuildingName(b.name)}</div>
         <div class="time-item-line"><strong>${formatTime(buildingAppliedSeconds)}</strong></div>
       </div>`;
   }
@@ -1034,7 +1046,7 @@ document.getElementById('building').addEventListener('change',function(){
 
 </script>
 
-<div class="creator-credit">제작 · #252 TKOR 달콩쓰<br><span class="version-credit">Calculator v1.0</span></div>
+<div class="creator-credit">제작 · #252 TKOR 달콩쓰<br><span class="version-credit">Calculator v1.1</span></div>
 <style>
 .creator-credit{
   text-align:center;
